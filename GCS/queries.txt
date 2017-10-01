@@ -1,0 +1,5 @@
+1. What is the different between bucket and storage class?
+
+A bucket has three properties that you specify when you create it: a globally unique name, a location where the bucket and its contents are stored, and a default storage class for objects added to the bucket.
+
+Cloud Storage offers four storage classes: Multi-Regional Storage, Regional Storage, Nearline Storage, and Coldline Storage. All storage classes offer the same throughput, low latency (time to first byte typically tens of milliseconds), and high durability. The classes differ by their availability, minimum storage durations, and pricing for storage and access.

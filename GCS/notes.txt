@@ -1,0 +1,31 @@
+1. To create a new storage bucket:
+gsutil mb gs://[BUCKET_NAME]/
+
+gsutil mb -p [PROJECT_NAME] -c [STORAGE_CLASS] -l [BUCKET_LOCATION] gs://[BUCKET_NAME]/
+P,c,l are optional flags.
+
+2.List the bucket content
+gsutil ls -r gs://[BUCKET_NAME]/**
+gsutil du -s gs://[BUCKET_NAME]/
+gsutil ls s3://example-bucket    ( before this, place you secret key in “~/.aws/credentials” file
+
+3.Copy command
+gsutil cp -r gs://[SOURCE_BUCKET] gs://[DESTINATION_BUCKET]
+gsutil cp [LOCAL_OBJECT_LOCATION] gs://[DESTINATION_BUCKET_NAME]/
+gsutil cp gs://[BUCKET_NAME]/[OBJECT_NAME] [LOCAL_OBJECT_DESTINATION]
+gsutil mv gs://[SOURCE_BUCKET_NAME]/[SOURCE_OBJECT_NAME] gs://[DESTINATION_BUCKET_NAME]/[DESTINATION_OBJECT_NAME]
+
+If you have a large number of files to upload you can use the gsutil -m option, to perform a parallel (multi-threaded/multi-processing) copy.
+gsutil -m cp -R top-level-dir gs://example-bucket
+
+Streaming data copy
+read_stream_file | gsutil cp - gs://my_app_bucket/data_measurements
+gsutil cp gs://bucket/object - | <process data>
+
+4. Delete command
+gsutil rm -r gs://[SOURCE_BUCKET]/**
+
+
+
+
+
