@@ -1,0 +1,51 @@
+Install DataLab:
+===================
+
+1.Install the datalab utility
+   gcloud components install datalab
+
+2. If VM not created then,
+    datalab create datalab-instance-name
+  If VM created the,
+   datalab connect --project poc-tier1 --zone us-west1-a --no-user-checking nwe-nganesan
+
+3.Open the link to access DataLab environment.
+   http://localhost:8081
+
+
+Overview:
+============
+
+1. Each notebook uses a Python kernel to run code in its own process. For example, if you have N notebooks open, there are at least N processes
+  corresponding to those notebooks.
+2. Each kernel is single threaded. Unless you are running multiple notebooks at the same time, multiple cores may not provide significant benefit.
+3. You may benefit significantly by selecting a machine with additional memory depending on your usage pattern and the amount of data processed.
+4. Execution is cumulative—running three Cloud Datalab notebook cells in a row results in the accumulation of corresponding state, including memory
+   allocated for data structures used in those cells.
+5. Processing large amounts of data in memory (for example, using Pandas Dataframes) causes proportional memory allocation. When you finish running a
+   notebook, you can stop the session by clicking on the Running Sessions icon  sessions-icon in the top bar (you may need to resize the browser window to
+  see the icon) and shutting down the session.
+6. Cloud Datalab utilizes disk-based swap file to provide overhead for additional memory requirements, but relying on the swap file is likely to slow
+   down processing. It's best to estimate memory needs, then pick a machine type with at least the estimated amount of memory.
+
+Managing the lifecycle of a Cloud Datalab instance:
+====================================================
+
+Cloud Datalab runs inside of a Google Compute Engine VM with an attached persistent disk that is used to store notebooks.
+Cloud Datalab VMs are connected to a special network in a project called datalab-network.
+The default configuration of this network limits incoming connections to SSH connections.
+Google Compute Engine VMs incur costs. You are charged for the time that a Cloud Datalab instance is running whether or not you are using it.
+You can reduce Cloud Datalab VM charges by stopping the instance when you are not using it.
+
+Adding Python libraries to a Cloud Datalab instance:
+=====================================================
+
+Add a code cell in a notebook to pip install the library, and then run the code cell after substituting lib-name:
+!pip install lib-name
+
+
+Working with data:
+===================
+
+Google Cloud Storage: files and directories in Cloud Storage can be programmatically accessed using the datalab.storage APIs.
+BigQuery: tables and views can be queried using SQL and datalab.bigquery APIs.

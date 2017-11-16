@@ -1,0 +1,19 @@
+Write and run Spark Scala jobs on a Cloud Dataproc cluster:
+==============================================================
+
+write and compile a Spark Scala "Hello World" app on a local machine from the command line using the Scala REPL (Read-Evaluate-Print-Loop or interactive interpreter), the SBT build tool, or the Eclipse IDE using the Scala IDE plugin for Eclipse
+package compiled Scala classes into a jar file with a manifest
+submit the Scala jar to a Spark job that runs on your Cloud Dataproc cluster
+examine Scala job output from the Google Cloud Platform Console
+
+
+
+gcloud dataproc jobs submit spark --cluster dataproc-dev \
+  --jar gs://polaris-dev/temp/v1/IndixProcess.jar \
+  --class com.westfield.input.IndixInputPrep
+
+Run spark code in local mode in dataproc master node:
+-----------------------------------------------------
+spark-submit --class com.westfield.input.IndixInputPrep --master local[8] gs://polaris-dev/temp/v1/IndixProcess.jar
+
+spark-submit --class com.westfield.input.IndixInputPrep --master yarn     gs://polaris-dev/temp/v1/IndixProcess.jar

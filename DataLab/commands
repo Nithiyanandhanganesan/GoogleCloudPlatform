@@ -1,0 +1,82 @@
+Google Storage :
+==================
+
+
+
+
+
+
+
+
+The Chart Command:
+===================
+
+%%chart --help
+
+Command to generate chart based on the current result:
+
+%%bq query --name timeseries
+SELECT timestamp, AVG(latency) AS latency FROM (
+  SELECT TIMESTAMP_TRUNC(timestamp, HOUR) AS timestamp, latency
+  FROM `cloud-datalab-samples.httplogs.logs_20140615`
+  WHERE endpoint = 'Popular'
+)
+GROUP BY timestamp
+ORDER BY timestamp
+
+%bq execute -q timeseries
+
+%%chart line --fields timestamp,latency --data timeseries
+
+
+Scatter Chart
+--------------
+
+%%bq query -n births
+SELECT gestation_weeks AS weeks, weight_pounds AS weight FROM `publicdata.samples.natality` WHERE gestation_weeks < 99 LIMIT 1000
+
+%%chart scatter --data births
+title: Birth Weight vs Weeks
+height: 400
+width: 900
+hAxis:
+  title: Weeks
+vAxis:
+  title: Weight
+legend: none
+
+
+Pie Chart:
+-----------
+
+%%bq query -n languages
+SELECT repository_language AS language, COUNT(repository_language) as activity
+FROM `publicdata.samples.github_timeline`
+WHERE type = 'PushEvent'
+  AND repository_language != ''
+GROUP BY language
+ORDER BY activity DESC
+LIMIT 10
+
+
+%%chart pie --fields language,activity --data languages
+title: Top 10 OSS Programming Languages
+height: 400
+width: 800
+pieStartAngle: 20
+slices:
+  0:
+    offset: .2
+
+TimeSeries Chart:
+------------------
+
+%%bq query -n weather
+SELECT max_temperature AS temperature,
+       SAFE_CAST(CONCAT(SAFE_CAST(year AS STRING), '-', SAFE_CAST(month AS STRING), '-', SAFE_CAST(day AS STRING)) AS TIMESTAMP) AS timestamp
+FROM `publicdata.samples.gsod`
+WHERE station_number = 727930 AND year >= 2000
+ORDER BY year DESC, month DESC, day DESC
+
+
+%%chart annotation --fields timestamp,temperature --data weather

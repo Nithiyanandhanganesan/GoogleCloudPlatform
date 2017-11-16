@@ -1,0 +1,99 @@
+Cloud Dataproc is a fast, easy-to-use, fully-managed cloud service for running Apache Spark and Apache Hadoop clusters in a simpler,
+more cost-efficient way.
+
+Quickstart using the console:
+=============================
+
+Create a cluster
+----------------
+Go to the Cloud Platform Console Cloud Dataproc Clusters page.
+Click Create cluster.
+Enter example-cluster in the Name field.
+Select a region and zone for the cluster from the Region and Zone drop-down menus (global region and us-central1-a zone are shown selected, below).
+global region is the default.
+Click Create to create the cluster.
+
+
+Submit a job
+----------------
+To run a sample Spark job:
+
+Select Jobs in the left nav to switch to Dataproc's jobs view.
+Click Submit job.
+Select your new cluster example-cluster from the Cluster drop-down menu.
+Select Spark from the Job type drop-down menu.
+Enter file:///usr/lib/spark/examples/jars/spark-examples.jar in the Jar file field.
+Enter org.apache.spark.examples.SparkPi in the Main class or jar field.
+Enter 1000 in the Arguments field to set the number of tasks
+
+Quickstart using the gcloud command-line tool:
+===============================================
+
+gcloud dataproc clusters create example-cluster
+
+gcloud dataproc jobs submit spark --cluster dm-dproc-m \
+  --class org.apache.spark.examples.SparkPi \
+  --jars file:///usr/lib/spark/examples/jars/spark-examples.jar -- 1000
+
+
+To change the number of workers in the cluster to five, run the following command:
+gcloud dataproc clusters update example-cluster --num-workers 5
+
+gcloud dataproc clusters delete example-cluster
+
+
+You can submit a job via a
+Cloud Dataproc API jobs.submit request,
+using the Google Cloud SDK gcloud command-line tool,
+or from the Google Cloud Platform Console.
+You can also connect to a machine instance in your cluster using SSH, and then run a job from the instance.
+
+
+Overview:
+=============
+
+Some of the core open source components included with Google Cloud Dataproc clusters, such as Apache Hadoop and Apache Spark, provide web interfaces.
+These web interfaces can be used to manage and monitor different cluster resources and facilities,
+such as the YARN resource manager, the Hadoop Distributed File System (HDFS), MapReduce, and Spark.
+
+YARN ResourceManager	=> 	http://master-host-name:8088
+HDFS NameNode	        => http://master-host-name:9870
+
+
+Connecting to the web interface:
+---------------------------------
+
+Below command will create ssh tunneling from local machine to dataproc master node in port 1080
+gcloud compute ssh --zone=master-host-zone master-host-name -- -D 1080 -N -n
+Eg:
+gcloud compute --project "poc-tier1" ssh --zone "us-west1-b" "dm-dproc-m" -- -D 1080 -N -n
+
+
+Below command is used to connect web browser to that port to see the yarn UI.
+-> Mac OS X	    /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
+-> Linux	      /usr/bin/google-chrome
+
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --proxy-server=“socks5://localhost:1080” --host-resolver-rules=“MAP * 0.0.0.0, EXCLUDE localhost” --user-data-dir=/tmp/data-dir-name/
+
+
+Stackdriver Monitoring:
+------------------------
+
+Google Stackdriver Monitoring provides visibility into the performance, uptime, and overall health of cloud-powered applications.
+Stackdriver collects and ingests metrics, events, and metadata from Google Cloud Dataproc clusters (Google Compute Engine virtual machines)
+to generate insights via dashboards, charts, and alerts.
+
+
+Google BigQuery connector:
+===========================
+
+You can use a Google BigQuery connector to enable programmatic read/write access to Google BigQuery.
+This is an ideal way to process data that is stored in BigQuery. No command-line access is exposed.
+The BigQuery connector is a Java library that enables Hadoop to process data from BigQuery using abstracted versions of the Apache Hadoop
+InputFormat and OutputFormat classes.
+
+The BigQuery connector is installed by default on all Google Cloud Dataproc clusters.
+
+IndirectBigQueryOutputFormat works by first buffering all the data into a Google Cloud Storage temporary table, and then, on commitJob,
+copies all data from Cloud Storage into BigQuery in one operation. Its use is recommended for large jobs since it only requires one BigQuery "load"
+job per Hadoop/Spark job, as compared to BigQueryOutputFormat, which performs one BigQuery job for each Hadoop/Spark task.

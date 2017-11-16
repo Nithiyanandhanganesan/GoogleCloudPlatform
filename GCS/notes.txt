@@ -26,6 +26,59 @@ gsutil cp gs://bucket/object - | <process data>
 gsutil rm -r gs://[SOURCE_BUCKET]/**
 
 
+Python API:
+============
+
+client = storage.Client(project='poc-tier1')
+
+----------------------------------------
+Buckets api's:
+----------------------------------------
+
+Batch object:
+--------------
+Each HTTP connection that your client makes results in a certain amount of overhead. The Google Cloud Storage JSON API supports batching, to allow your client to put several API calls into a single HTTP request.
+Examples of situations when you might want to use batching:
+Updating metadata, such as permissions, on many objects.
+Deleting many objects.
+In each case, instead of sending each call separately, you can group them together into a single HTTP request. You can even group requests for multiple users or multiple Google APIs.
+You're limited to 100 calls in a single batch request. If you need to make more calls than that, use multiple batch requests.
+
+batch_ref=client.batch()
 
 
+Bucket object:
+----------------
+returns reference to the bucket.
 
+bucket_ref=client.bucket("testbucketdeletemeuseless")
+
+Create bucket:
+---------------
+client.create_bucket("test")
+
+check if bucket exists:
+------------------------
+client.get_bucket('testbucketdeletemeuseless')
+
+list the buckets in project:
+---------------------------
+test=storage_client.gcs_client.list_buckets()
+    for bucket in test:
+        print(bucket)
+
+
+check if bucket exists:
+--------------------------
+client.lookup_bucket('xxx')
+
+
+---------------------------------------------------
+Blob/Object api's
+---------------------------------------------------
+class google.cloud.storage.blob.Blob(name, bucket, chunk_size=None, encryption_key=None)
+
+bucket = client.get_bucket('testbucketdeletemeuseless')
+blob = bucket.get_blob('retail_test/retailnext.csv')
+blob.download_as_string()
+blob.delete()

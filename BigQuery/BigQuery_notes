@@ -1,0 +1,143 @@
+BigQuery is Google's fully managed, petabyte scale, low cost enterprise data warehouse for analytics. BigQuery is serverless.
+
+Big Query CLI:
+===============
+
+To examine the schema of a specific table, run:
+bq show projectId:datasetId.tableId
+
+
+bq ls
+bq ls publicdata:
+bq mk babynames
+bq rm -r babynames
+bq extract [DATASET].[TABLE_NAME] gs://[BUCKET_NAME]/[FILENAME.CSV]
+bq extract --destination_format=[CSV | NEWLINE_DELIMITED_JSON | AVRO] [DATASET].[TABLE_NAME] gs://[BUCKET_NAME]/[FILENAME]
+bq extract --compression=[GZIP | NONE] [DATASET].[TABLE_NAME] gs://[BUCKET_NAME]/[FILENAME]
+
+bq query "SELECT word, SUM(word_count) as count FROM publicdata:samples.shakespeare WHERE word CONTAINS 'raisin' GROUP BY word"
+
+bq load babynames.names2010 yob2010.txt name:string,gender:string,count:integer
+The bq load command arguments:
+datasetID: babynames
+tableID: names2010
+source: yob2010.txt
+schema: name:string,gender:string,count:integer
+
+
+Partitioned Table:
+====================
+
+All partitions in a partitioned table share the schema of the table.
+If you need to load data into a partition with a schema that is not the same as the schema of the table, you need to update the schema of the table
+before loading the data. Alternatively, you can use schema update options to update the schema of the table as part of a load or query job.
+
+Partitioned tables include a pseudo column named _PARTITIONTIME that contains a date-based timestamp for data that is loaded into the table.
+The timestamp is based on UTC time and represents the number of microseconds since the unix epoch. For example, if data is appended to a table
+ on April 15, 2016, all of the rows of data that are appended on that day contain the value TIMESTAMP("2016-04-15") in the _PARTITIONTIME column.
+
+The _PARTITIONTIME column name is reserved, which means that you cannot create a column by that name in any of your tables.
+
+SELECT
+  _PARTITIONTIME AS pt,
+  field1
+FROM
+  mydataset.table1
+
+Addressing table partitions:
+-----------------------------
+
+With legacy SQL, you can use partition decorators to reference data from a specific partition. Partition decorators take the form:
+[TABLE_NAME]$YYYYMMDD
+
+where [TABLE_NAME] is the name of a partitioned table, and YYYYMMDD represents a date.
+
+For example, the partition for May 19, 2016 in a table named mydataset.table can be referenced using:
+mydataset.table$20160519
+
+bq query 'SELECT * from mydataset.table$20160519'
+bq query "SELECT * from mydataset.table\$20160519"
+
+
+Partitioned table limits:
+Each partitioned table can have up to 2,500 partitions.
+Daily limit: 2,000 partition updates per table, per day.
+Rate limit: 50 partition updates every 10 seconds.
+
+
+bq mk --time_partitioning_type=DAY [DATASET].[TABLE]
+bq load --source_format=NEWLINE_DELIMITED_JSON --time_partitioning_type=DAY [DATASET].[TABLE] gs://[BUCKET]/my_file.json
+
+Writing query results to a partitioned table:
+---------------------------------------------
+bq query --destination_table [DATASET].[TABLE] --time_partitioning_type=DAY 'SELECT * FROM [[DATASET].[TABLE]_latest]'
+
+To view partitions settings:
+bq show --format=prettyjson [DATASET].[TABLE]
+
+Creating a partitioned table and adding data to its partitions:
+bq mk --time_partitioning_type=DAY mydataset.temps
+bq show --format=prettyjson mydataset.temps
+
+
+bq query --allow_large_results --replace --noflatten_results --destination_table 'mydataset.temps$20160101' \
+'SELECT stn,temp from [bigquery-public-data:noaa_gsod.gsod2016] WHERE mo="01" AND da="01" limit 100'
+
+bq show mydataset.temps
+
+
+Copying to partitioned tables:
+To copy a partitioned table into another partitioned table, the partition specifications for the source and destination tables must match.
+If you copy a non-partitioned table into a partitioned table, BigQuery copies the source data into the partition that represents the current date.
+
+
+bq cp --append_table mydataset.tableA 'mydataset.table1$20160101'
+
+To update data in a specific partition, append a partition decorator to the name of the partitioned table when loading data into the table.
+A partition decorator represents a specific date and takes the form:
+$YYYYMMDD
+
+For example, the following command replaces the data in the entire partition for the date January 1, 2016 (20160101) in a partitioned table
+named mydataset.table1 with content loaded from a Cloud Storage bucket:
+bq load  --replace --source_format=NEWLINE_DELIMITED_JSON 'mydataset.table1$20160101' gs://[MY_BUCKET]/replacement_json.json
+
+
+Streaming data into partitions:
+--------------------------------
+
+To stream data to a specific partition, use the partition decorator when specifying the tableId of the table to which you are streaming.
+For example, the following command streams a single row to a partition for the date January 1, 2017(20170101) in a partitioned table named
+mydataset.table1:
+
+echo '{"a":1, "b":2}' | bq insert 'mydataset.table1$20170101'
+When streaming using a partition decorator, you can stream to partitions within the last 30 days in the past and 5 days in the future relative
+to the current date, based on current UTC time. To write to partitions for dates outside these allowed bounds, you can use load or query jobs.
+
+Deleting partitions:
+-----------------------
+bq rm 'mydataset.table$20160301'
+
+Check partition status:
+------------------------
+#legacySQL
+SELECT
+  partition_id,
+  last_modified_time
+FROM
+  [mydataset.table1$__PARTITIONS_SUMMARY__]
+
+In legacy SQL, the _PARTITIONTIME filter works only when the filter is specified as closely as possible to the table name.
+For example, the following query scans all partitions in table1 despite the presence of the _PARTITIONTIME filter:
+
+#legacySQL
+# Scans all partitions on t1
+SELECT
+  t1.field1,
+  t2.field1
+FROM
+  mydataset.table2 t1
+CROSS JOIN
+  mydataset.table2 t2
+WHERE
+  t1._PARTITIONTIME = TIMESTAMP('2016-03-28')
+  AND t1.field2 = "one"

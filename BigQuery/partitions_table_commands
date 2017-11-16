@@ -1,0 +1,45 @@
+1. Create partitions table:
+------------------------------
+bq mk --time_partitioning_type=DAY [DATASET].[TABLE]
+bq mk --time_partitioning_type=DAY test.test_partitions
+
+
+
+2. Load data into partitions table:
+-----------------------------------
+Below command needs to run after creating the table:
+bq load  --source_format=CSV 'test.test_partitions3$20160101' gs://testwrsdata/temp/test_partitions/*.csv
+
+Below command load non-partitioned table to partitioned table[Not Working]:
+bq cp --append_table test.test_partitions2 'test.test_partitions3$20170102'
+
+Below command will create partition table and load data. [Below command not working]
+bq load --source_format=NEWLINE_DELIMITED_JSON --time_partitioning_type=DAY [DATASET].[TABLE] gs://[BUCKET]/my_file.json
+bq load --source_format=CSV --time_partitioning_type=DAY test.test_partitions2 gs://testwrsdata/temp/test_partitions/*.csv
+
+Below command will load from one non-partitioned table to partitioned table.
+bq query --destination_table [DATASET].[TABLE] --time_partitioning_type=DAY 'SELECT * FROM [[DATASET].[TABLE]_latest]'
+bq query --destination_table test.test_partitions3 --time_partitioning_type=DAY 'SELECT * FROM [[DATASET].[TABLE]_latest]'
+bq query --destination_table test.test_partitions3$20170104 'SELECT * FROM test.test_partitions3$20160103'
+
+
+
+3. query data on only one partition.
+---------------------------------------
+bq query 'SELECT * from test.test_partitions3\$20161030'
+
+
+5. Overwrite data in particular partition.
+---------------------------------------------
+bq query --allow_large_results --replace --noflatten_results --destination_table 'mydataset.temps$20160101' \
+'SELECT stn,temp from [bigquery-public-data:noaa_gsod.gsod2016] WHERE mo="01" AND da="01" limit 100'
+
+bq load  --replace --source_format=NEWLINE_DELIMITED_JSON 'mydataset.table1$20160101' gs://[MY_BUCKET]/replacement_json.json
+
+
+6. delete data from particualr partitions.
+-------------------------------------------
+bq rm 'mydataset.table$20160301'
+
+General commands:
+bq show --format=prettyjson test.test_partitions3

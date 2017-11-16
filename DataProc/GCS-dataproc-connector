@@ -1,0 +1,23 @@
+Google Cloud Storage connector:
+==================================
+The Google Cloud Storage connector lets you run Apache Hadoop or Apache Spark jobs directly on data in Cloud Storage, and offers a number of benefits over choosing the Hadoop Distributed File System (HDFS).
+
+Benefits of the Cloud Storage connector:
+
+Direct data access –
+  Store your data in Cloud Storage and access it directly, with no need to transfer it into HDFS first.
+HDFS compatibility –
+  You can easily access your data in Cloud Storage using the gs:// prefix instead of hdfs://.
+Interoperability –
+  Storing data in Cloud Storage enables seamless interoperability between Spark, Hadoop, and Google services.
+Data accessibility –
+  When you shut down a Hadoop cluster, you still have access to your data in Cloud Storage, unlike HDFS.
+High data availability –
+  Data stored in Cloud Storage is highly available and globally replicated without a loss of performance.
+No storage management overhead –
+  Unlike HDFS, Cloud Storage requires no routine maintenance such as checking the file system,
+  upgrading or rolling back to a previous version of the file system, etc.
+Quick startup –
+  In HDFS, a MapReduce job can't start until the NameNode is out of safe mode—a process that can take from a few seconds to
+  many minutes depending on the size and state of your data. With Google Cloud Storage, you can start your job as soon as the task nodes start,
+  leading to significant cost savings over time.

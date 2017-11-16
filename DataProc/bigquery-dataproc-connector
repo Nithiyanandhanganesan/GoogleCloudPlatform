@@ -1,0 +1,108 @@
+Google BigQuery connector:
+===========================
+
+You can use a Google BigQuery connector to enable programmatic read/write access to Google BigQuery.
+This is an ideal way to process data that is stored in BigQuery. No command-line access is exposed.
+The BigQuery connector is a Java library that enables Hadoop to process data from BigQuery using abstracted versions of the Apache Hadoop
+InputFormat and OutputFormat classes.
+
+The BigQuery connector is installed by default on all Google Cloud Dataproc clusters.
+
+
+The BigQuery Connector can be used with Apache Spark to read and write data from/to Google BigQuery.
+This example reads data from Google BigQuery into Spark to perform a word count using SparkContext.newAPIHadoopRDD
+(see the Spark documentation) for more information. It writes the data back to BigQuery using PairRDDFunctions.saveAsNewAPIHadoopDataset.
+
+IndirectBigQueryOutputFormat works by first buffering all the data into a Google Cloud Storage temporary table, and then, on commitJob,
+copies all data from Cloud Storage into BigQuery in one operation. Its use is recommended for large jobs since it only requires one BigQuery "load"
+job per Hadoop/Spark job, as compared to BigQueryOutputFormat, which performs one BigQuery job for each Hadoop/Spark task.
+
+
+
+import com.google.cloud.hadoop.io.bigquery.BigQueryConfiguration
+import com.google.cloud.hadoop.io.bigquery.BigQueryFileFormat
+import com.google.cloud.hadoop.io.bigquery.GsonBigQueryInputFormat
+import com.google.cloud.hadoop.io.bigquery.output.BigQueryOutputConfiguration
+import com.google.cloud.hadoop.io.bigquery.output.IndirectBigQueryOutputFormat
+import com.google.gson.JsonObject
+import org.apache.hadoop.io.LongWritable
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat
+
+
+// Marked as transient since configuration is not Serializable. This should
+// only be necessary in spark-shell REPL.
+@transient
+val conf = sc.hadoopConfiguration
+
+// Input parameters.
+val fullyQualifiedInputTableId = "poc-tier1:test.kohls_test"
+// Retrieve the project ID
+val projectId = conf.get("fs.gs.project.id")
+//Retrieve the bucket used for dataproc
+val bucket = conf.get("fs.gs.system.bucket")
+
+// Input configuration.
+conf.set(BigQueryConfiguration.PROJECT_ID_KEY, projectId)
+conf.set(BigQueryConfiguration.GCS_BUCKET_KEY, bucket)
+BigQueryConfiguration.configureBigQueryInput(conf, fullyQualifiedInputTableId)
+
+// Output parameters.
+val outputTableId = projectId + ":test.wordcount_output"
+
+// Temp output bucket that is deleted upon completion of job.
+val outputGcsPath = ("gs://" + bucket + "/hadoop/tmp/bigquery/wordcountoutput")
+
+
+// Output configuration.
+// Let BigQuery auto-detect output schema (set to null below).
+BigQueryOutputConfiguration.configure(conf,
+                                      outputTableId,
+                                      null,
+                                      outputGcsPath,
+                                      BigQueryFileFormat.NEWLINE_DELIMITED_JSON,
+                                      classOf[TextOutputFormat[_,_]])
+
+conf.set("mapreduce.job.outputformat.class",classOf[IndirectBigQueryOutputFormat[_,_]].getName)
+
+// Truncate the table before writing output to allow multiple runs.
+conf.set(BigQueryConfiguration.OUTPUT_TABLE_WRITE_DISPOSITION_KEY,"WRITE_TRUNCATE")
+
+// Helper to convert JsonObjects to (word, count) tuples.
+def convertToTuple(record: JsonObject) : (String, Long) = {
+  val word = record.get("word").getAsString.toLowerCase
+  val count = record.get("word_count").getAsLong
+  return (word, count)
+}
+
+// Helper to convert (word, count) tuples to JsonObjects.
+def convertToJson(pair: (String, Long)) : JsonObject = {
+  val word = pair._1
+  val count = pair._2
+  val jsonObject = new JsonObject()
+  jsonObject.addProperty("word", word)
+  jsonObject.addProperty("word_count", count)
+  return jsonObject
+}
+
+
+// Load data from BigQuery.
+val tableData = sc.newAPIHadoopRDD(
+    conf,
+    classOf[GsonBigQueryInputFormat],
+    classOf[LongWritable],
+    classOf[JsonObject])
+
+// Perform word count.
+val wordCounts = (tableData
+    .map(entry => convertToTuple(entry._2))
+    .reduceByKey(_ + _))
+
+// Display 10 results.
+wordCounts.take(10).foreach(l => println(l))
+
+
+// Write data back into a new BigQuery table.
+// IndirectBigQueryOutputFormat discards keys, so set key to null.
+(wordCounts
+    .map(pair => (null, convertToJson(pair)))
+    .saveAsNewAPIHadoopDataset(conf))

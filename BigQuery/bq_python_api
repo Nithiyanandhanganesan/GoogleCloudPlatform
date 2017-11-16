@@ -1,0 +1,47 @@
+Installing the client library:
+  pip install --upgrade google-cloud-bigquery
+
+To run the client library, you must first set up authentication.
+
+BigQuery
+Authentication / Configuration
+
+Use Client objects to configure your applications.
+Client objects hold both a project and an authenticated connection to the BigQuery service.
+The authentication credentials can be implicitly determined from the environment or directly via from_service_account_json and from_service_account_p12.
+After setting GOOGLE_APPLICATION_CREDENTIALS and GOOGLE_CLOUD_PROJECT environment variables, create an instance of Client.
+
+Client manages connections to the BigQuery API. Use the client methods to run jobs (such as a QueryJob via query()) and manage resources.
+Dataset represents a collection of tables.
+Table represents a single “relation”.
+
+https://googlecloudplatform.github.io/google-cloud-python/latest/bigquery/usage.html
+
+Project:
+--------
+A project is the top-level container in the BigQuery API: it is tied closely to billing, and can provide default access control across all its datasets.
+If no project is passed to the client container, the library attempts to infer a project using the environment
+
+>>>from google.cloud import bigquery
+>>> client = bigquery.Client(project='poc-tier1')\
+
+Datasets:
+----------
+
+List datasets for the client’s project:
+
+for dataset in client.list_datasets():  # API request(s)
+  do_something_with(dataset)
+
+Create a new dataset for the client’s project:
+
+DATASET_ID = 'test_api'
+dataset_ref = client.dataset(DATASET_ID)
+dataset = bigquery.Dataset(dataset_ref)
+dataset.description = 'my dataset'
+dataset = client.create_dataset(dataset)  # API request
+
+#Delete a dataset
+bigquery_client.delete_dataset(dataset)
+
+https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs
