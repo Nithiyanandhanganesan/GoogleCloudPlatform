@@ -1,0 +1,83 @@
+Cloud Bigtable is a sparsely populated table that can scale to billions of rows and thousands of columns, 
+allowing you to store terabytes or even petabytes of data. A single value in each row is indexed; 
+this value is known as the row key. 
+
+Cloud Bigtable is ideal for applications that need very high throughput and scalability for non-structured 
+key/value data, where each value is typically no larger than 10 MB. Cloud Bigtable also excels as a 
+storage engine for batch MapReduce operations, stream processing/analytics, and machine-learning applications.
+
+Cloud Bigtable storage model:
+===============================
+
+Cloud Bigtable stores data in massively scalable tables, each of which is a sorted key/value map. 
+The table is composed of rows, each of which typically describes a single entity, and columns, which contain 
+individual values for each row. Each row is indexed by a single row key, and columns that are related to one 
+another are typically grouped together into a column family. Each column is identified by a combination of 
+the column family and a column qualifier, which is a unique name within the column family.
+
+Each row/column intersection can contain multiple cells at different timestamps, providing a record of how 
+the stored data has been altered over time. Cloud Bigtable tables are sparse; if a cell does not contain any data, 
+it does not take up any space.
+
+Architecture:
+=================
+
+ll client requests go through a front-end server before they are sent to a Cloud Bigtable node. (In the original Bigtable whitepaper, these nodes are called "tablet servers.") The nodes are organized into a Cloud Bigtable cluster, which belongs to a Cloud Bigtable instance, a container for the cluster. Each node in the cluster handles a subset of the requests to the cluster. By adding nodes to a cluster, you can increase the number of simultaneous requests that the cluster can handle, as well as the maximum throughput for the entire cluster.
+A Cloud Bigtable table is sharded into blocks of contiguous rows, called tablets, to help balance the workload of queries. (Tablets are similar to HBase regions.) Tablets are stored on Colossus, Google's file system, in SSTable format. An SSTable provides a persistent, ordered immutable map from keys to values, where both keys and values are arbitrary byte strings. Each tablet is associated with a specific Cloud Bigtable node. In addition to the SSTable files, all writes are stored in Colossus's shared log as soon as they are acknowledged by Cloud Bigtable, providing increased durability.Importantly, data is never stored in Cloud Bigtable nodes themselves; each node has pointers to a set of tablets that are stored on Colossus. As a result: - Rebalancing tablets from one node to another is very fast, because the actual data is not copied. Cloud Bigtable simply updates the pointers for each node. - Recovery from the failure of a Cloud Bigtable node is very fast, because only metadata needs to be migrated to the replacement node. - When a Cloud Bigtable node fails, no data is lost.Load balancing:
+================
+
+If a certain tablet gets a spike of traffic, the master will split the tablet in two, then move one of the new tablets to another node.
+To get the best write performance from Cloud Bigtable, it's important to distribute writes as evenly as possible across nodes.
+One way to achieve this goal is by using row keys that do not follow a predictable order. For example, you could use the hash ofa string rather than the actual string, as long as you avoid hash collisions.
+
+At the same time, it's useful to group related rows near one another, which makes it more efficient to read several rows at the same time. For example, if you're storing different types of weather data over time, your row key might be the location where the data was collected followed by a timestamp (for example, WashingtonDC#201503061617 ). This type of row key would group all of the data from one location together. For other locations, the row would start with a different identifier; with many locations collecting data at the same rate, writes would still be spread evenly across tablets.
+
+Storage:
+===========
+
+Cloud Bigtable periodically rewrites your tables to remove deleted entries, and to reorganize your data so that reads and writes are more efficient. This process is known as a compaction. There are no configuration settings for compactions—Cloud Bigtable compacts your data automatically.
+
+Mutations, or changes, to a row take up extra storage space, because Cloud Bigtable stores mutations sequentially and compacts them only periodically. When Cloud Bigtable compacts a table, it removes values that are no longer needed. If you update the value in a cell, both the original value and the new value will be stored on disk for some amount of time until the data is compacted.Deletions also take up extra storage space, at least in the short term, because deletions are actually a specialized type of mutation. Until the table is compacted, a deletion uses extra storage rather than freeing up space.
+
+Cloud Bigtable compresses your data automatically using an intelligent algorithm. 
+
+Design Concepts:
+==================
+
+Each table has only one index, the row key. There are no secondary indices.
+Rows are sorted lexicographically by row key, from the lowest to the highest byte string. Row keys are sorted in big-endian, or network, byte order, the binary equivalent of alphabetical order.
+All operations are atomic at the row level. For example, if you update two rows in a table, it's possible that one row will be updated successfully and the other update will fail. Avoid schema designs that require atomicity across rows.Reads and writes should ideally be distributed evenly across the row space of the table.In general, keep all information for an entity in a single row. An entity that doesn't need atomic updates and reads can bebe split across multiple rows. Splitting across multiple rows is recommended if the entity data is large (hundreds of MB). Related entities should be stored in adjacent rows, which makes reads more efficient.Cloud Bigtable tables are sparse. Empty columns don't take up any space. As a result, it often makes sense to create a very large number of columns, even if most columns are empty in most rows.
+
+
+Size limits:
+===============As a best practice, be sure your schema design allows you to stay below these recommended size limits:
+Row keys: 4 KB per keyColumn families: ~100 families per table 
+Column qualifiers: 16 KB per qualifier 
+Individual values: ~10 MB per cellAll values in a single row: ~100 MB
+
+
+
+BigTable command line utility:
+=========================
+
+Install the cbt command: 
+     gcloud components update
+     gcloud components install cbt 
+     echo project = [PROJECT_ID] > ~/.cbtrc
+     echo instance = quickstart-instance >> ~/.cbtrc 
+
+1.Create a table named my-table . 
+  cbt createtable my-table 
+
+2.Listyourtables:    cbt ls 
+
+3.Add one column family named cf1 : 
+  cbt createfamily my-table cf1 
+ 4.List your columnfamilies:    cbt ls my-table
+
+5.Put the value test-value in the row r1 , using the column family cf1 and the column qualifier c1 : 
+  cbt set my-table r1 cf1:c1=test-value 
+ 6.Use the cbt read command to read the data you added to the table:  
+  cbt read my-table   7.Delete the table my-table : 
+  cbt deletetable my-table
+
