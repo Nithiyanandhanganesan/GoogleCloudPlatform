@@ -1,0 +1,16 @@
+Message-oriented architectures with Cloud Pub/Sub:
+===================================================
+
+One tool to handle distributed message-oriented architectures like what we've been talking about at a scalable way is Cloud Pub/Sub.
+Pub/Sub is a distributed messaging service that can receive messages from a variety of different streams.
+It ensures at least once delivery of messages and passes them to subscribing applications
+Cloud Pub/Sub reads, stores, and then publishes out any subscribers of this particular topic.
+Cloud Dataflow as a subscriber to this pub subtopic.
+Central piece of Pub/Sub is the topic.
+a publisher can send data to a topic that has no subscriber to receive it.
+Or the inverse, a subscriber could be waiting to hear data from a topic that isn't getting any data sent into it.
+Or you can have a fully operational pipeline where the publisher is sending data to a topic that an application that has subscribed to and it's pulling from.
+you can even publish from one Pub/Sub event them from that topic to yet another Pub/Sub subtopic
+
+Designing streaming pipelines with Apache Beam:
+------------------------------------------------

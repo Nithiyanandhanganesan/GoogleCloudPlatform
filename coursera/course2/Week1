@@ -1,0 +1,99 @@
+A zone is a deployment area for Google Cloud Platform Resources.
+Zones are grouped into regions,
+All the zones within a region have fast network connectivity among them.
+you can spread their resources across multiple zones in a region.
+Kubernetes engine which is Container Infrastructure as a Service,
+Cloud Dataproc which is the open source big data system Hadoop as a Service, and
+App Engine's Flexible Environment, which is a Platform as a Service.
+
+There are four ways to interact with GCP's management layer:
+through the web-based console,
+through the SDK and its command-line tools,
+through the APIs, and
+through a mobile app.
+
+
+
+Resources in GCP are organized into projects.
+these projects may be organized into folders. Folders can contain other folders.
+Projects, folders and organization nodes are all places where the policies can be defined.
+All Google Cloud platform resources belong to a project.
+Projects are the basis for enabling and using GCP services like managing APIs, enabling billing and adding and removing collaborators and
+enabling other Google services.
+Each project is a separate compartment and each resource belongs to exactly one.
+The project ID is a permanent, unchangeable identifier and it has to be unique across GCP.
+For instance, if you set a policy at the organization level, it is automatically inherited by all its children projects.
+
+
+Identity and Access Management (IAM):
+======================================
+
+The "who" part of an IAM policy can be defined either by a Google account, a Google group, a Service account
+"can do what" part is defined by an IAM role.
+There are three kinds of roles in Cloud IAM
+Primitive roles are broad. You apply them to a GCP project and they affect all resources in that project.
+These are the owner, editor, and viewer roles.
+GCP services offer their own sets of predefined roles and they define where those roles can be applied.
+
+
+VPC:
+====
+VPC networks connect your Google Cloud platform resources to each other and to the internet.
+You can segment your networks, use firewall rules to restrict access to instances, and create static routes to forward traffic to specific destinations.
+They can have subnets in any GCP region worldwide and subnets can span the zones that make up a region.
+You can also have resources in different zones on the same subnet.
+
+
+Containers in the Cloud:
+==========================
+
+Kubernetes Engine like an Infrastructure as a Service offering in that it saves you infrastructure chores.
+It's also like a platform as a service offering.
+
+The idea of a Container is to give you the independent scalability of workloads like you get in a PaaS environment, and an abstraction
+layer of the operating system and hardware, like you get in an Infrastructure as a Service environment.
+
+Kubernetes makes it easy to orchestrate many Containers on many hosts.
+Scale them, roll out new versions of them, and even roll back to the old version if things go wrong.
+
+Introduction to Kubernetes and GKE:
+====================================
+
+Kubernetes lets you deploy containers on a set of nodes called a cluster.
+In Kubernetes, a node represents a computing instance. In Google Cloud, nodes are virtual machines running in Compute Engine.
+ A pod is the smallest deployable unit in Kubernetes. Think of a pod as if it were a running process on your cluster.
+
+It's common to have only one container per pod.
+But if you have multiple containers with a hard dependency, you can package them into a single pod.
+They'll automatically share networking and they can have disk storage volumes in common.
+Each pod in Kubernetes gets a unique IP address and set of ports for your containers.
+One way to run a container in a pod in Kubernetes is to use the kubectl run command.
+
+
+App Engine:
+==============
+
+Of the two App Engine Environments, Standard is the simpler.
+It offers a simpler deployment experience than the Flexible environment and fine-grained auto-scale.
+Like the Standard Environment, it also offers a free daily usage quota for the use of some services.
+Instead of the sandbox, App Engine flexible environment lets you specify the container your App Engine runs in.
+
+Development in the cloud:
+==========================
+
+Cloud Source Repositories provides Git version control to support your team's development of any application or service,
+including those that run on App Engine, Compute Engine, and Kubernetes Engine.
+
+Monitoring: Proactive instrumentation:
+======================================
+Stackdriver is GCP's tool for monitoring, logging and diagnostics.
+Here are the core components of Stackdriver: Monitoring, Logging, Trace, Error Reporting and Debugging.
+
+
+Google Cloud Big Data Platform:
+================================
+
+Cloud Dataproc is a fast, easy, managed way to run Hadoop, Spark, Hive, and Pig on Google Cloud Platform.
+Cloud Dataproc is billed by the second.
+Dataflow to build data pipelines. And the same pipelines work for both batch and streaming data.
+There's no need to spin up a cluster or to size instances. Cloud Dataflow fully automates the management of whatever processing resources are required.

@@ -1,0 +1,112 @@
+Introduction to Google Cloud Platform:
+========================================
+
+One solution is to limit the power consumption of a chip, and you can do that by building Application-Specific Chips or ASICs.
+One kind of application is machine learning. Google's designed new types of hardware specifically for machine learning.
+The Tensor Processing Unit or TPU is an ASIC specifically optimized for ML.
+One such business that uses TPUs is eBay.
+
+Demo: Creating a VM on Compute Engine:
+---------------------------------------
+
+Compute Engine -> VM instances -> Create
+Enter "Name", Region, Zone, machine type, allow full access to all cloud API's  -> create
+
+It will not come with any software by default other than os.
+
+git clone https://www.github.com/GoogleCloudPlatform
+
+If I store the VM, then we have to pay only for disk not for compute.
+If I delete the VM, then data and machine will be lost.
+
+Elastic Storage with Google Cloud Storage:
+-------------------------------------------
+
+Storage Class:
+ - multi-regional
+ - regional
+ - nearline
+ - coldline
+
+Build on Google's Global Network:
+----------------------------------
+
+First, the private network. Google has laid thousands of miles of fiber optic cable that crosses oceans with repeaters to amplify optical signals.
+To serve out the results of your analytics and predictions, perhaps to users who are all around the world google use  Edge points.
+Google's Network, interconnects with the public Internet at more than 90 internet exchanges and more than 100 points of presence worldwide.
+Google's Edge caching network places content close to end-users to minimize latency.
+
+Security: On-premise vs Cloud-native:
+--------------------------------------
+
+Stored data is automatically encrypted at rest and distributed for availability and reliability.
+Data in a BigQuery table is encrypted using a data encryption key.
+hen, those data encryption keys are themselves encrypted with key encryption keys.
+This is known as envelope encryption and it provides additional security.
+BigQuery also allows you to provide your own encryption keys. These are called Customer Managed Encryption Keys.
+Inside BigQuery, you can monitor your team's BigQuery usage and running queries, and proactively limit access to data at a row and a column level.
+
+Evolution of Google Cloud Big Data Tools:
+------------------------------------------
+
+Created Colossus as a next-generation distributed data store,
+Spanner as a planet scale relational database.
+Flume and Millwheel for data pipelines,
+Pub/Sub for messaging,
+TensorFlow for machine learning
+
+
+Choosing the right approach:
+------------------------------
+Compute Engine which lets you run virtual machines on demand in the Cloud.
+
+GKE, Google Kubernetes Engine is different. Where Compute Engine is about individual machines running native code,
+GKE is about clusters of machines running containers. Containers have code packaged up with all its dependencies.
+So GKE enables you to run containerized applications in a Cloud environment that Google manages for you under your administrative control.
+
+App Engine is GCP's fully managed Platform as a Service or PaaS framework.
+That means it's a way to run code in the Cloud without having to worry about infrastructure.
+
+Cloud Functions is a completely serverless execution environment or Functions as a Service, FaaS.
+It executes your code in response to events whether those events occur once a day or many times a second.
+
+App Engine is used for long-lived Web applications that can autoscale to millions, to billions of users.
+Cloud Functions are used for code that's triggered by an event such as a new file hitting Cloud storage.
+
+Module Resources:
+--------------------
+
+Compute Engine: https://cloud.google.com/compute/
+Storage: https://cloud.google.com/storage/
+Pricing: https://cloud.google.com/pricing/
+
+
+How businesses use recommendation systems:
+----------------------------------------------
+
+Cloud SQL, which is a managed relational database
+Cloud Dataproc, which is a managed environment on which you can run Apache Spark.
+
+if one database is enough use Cloud SQL.
+If you'll need multiple databases, either because you have a lot of data or because your application needs to be transactional across different continents,
+use Cloud Spanner.
+
+Cloud SQL supports two open-source databases: MySQL and Postgres,
+GCP manages the MySQL Instance for you.
+
+Demo: From zero to an Apache Spark job in 10 minutes or less:
+--------------------------------------------------------------
+
+Create Dataproc clusters
+
+Dataproc -> Create Cluster
+Enter Name, Region, Zone, Cluster mode, Machine type, disk size, worker nodes,
+Click "Create"
+
+Create job
+Click "Submit Job"
+Select Cluster, job type, Main class, jar file
+Click "Submit"
+
+Introduction to BigQuery:
+=============================

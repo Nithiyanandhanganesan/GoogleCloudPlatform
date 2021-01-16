@@ -1,0 +1,208 @@
+Storage:
+
+GCS:
+=====
+
+- store unstructured data
+- bucket is logical container of object.
+- bucket name should be unique
+- Object can be
+   -> regional [its default. low cost][Stored atleast in 2 availability zones]
+   -> multi-regional
+- Object will be stored different storage classes
+   -> standard, [default]
+   -> nearline, [30 days minimum storage]
+   -> coldline. [90 days minimum storage]
+   -> archieve  [1 year minimum storage]
+- data encrypted while in transit and in rest
+- objects are immutable , atomic, versioned.
+- Parallel uploads of composite objects.
+- we can apply lifecycle configuration to the bucket. Using lifecycle policy, we can change the storage class of the object.
+- storage event triggers -> trigger notification when file lands.
+
+
+IAM:
+====
+
+ - IAM for bulk access to buckets.[roles assigned to Members]
+ - ACL for granular access to buckets. []
+ - Members [ individual, service account, groups]
+ - Roles [ list of permissions for the groups. eg: Admins, Pub/Sub Publisher]
+ - we can use google managed service account or we can create custom user-managed service account
+ - User-managed keys[private keys] is a downloadable JSON file.
+
+ storage.objectCreator -> create object in buckets
+ storage.objectViewer  -> list & retrieve object in buckets
+ storage.admin -> permission to both object and bucket
+
+ Data Transfer Services:
+ ========================
+
+Cloud Storage Transfer Service transfers data from a source to the sink(gcs).
+ - supported sources: s3, https, other gcp sources
+ - Filter source file based on names and date.
+ - Schedule periodic transfers
+ - sync between source and sink
+ - storagetransfer.admin
+ - storagetransfer.user
+ - storagetransfer.viewer
+
+BigQuery Data transfer Service:
+ - automates data transfer to BigQuery
+ - support multiple sources [s3, teradata, gcs, redshift]
+ - Schedule periodic data load
+ - backfill the missing data
+
+Transfer Appliance
+ - physical device. store and ship to google.
+
+
+Cloud SQL:
+============
+
+- This is not fully managed Service
+- it creates db and db instances
+- Comes with Two flavours: MySQL and PostgreSQL . SQL Server added recently
+- Vertically scale upto 64 cores and 416 gb ram
+- disk size grows automatically when data size grows upto 30TB
+- automated backups and restore incase of failure
+- Point-in time recovery
+- Data load to MySQL
+   - mysqldump export/import
+   - csv import
+- PostgreSQL
+    - secure external connection with cloud sql proxy or ssl/tls
+    - private IP address
+    - automated maintanence, backup and restore
+    - Point in time recovery not supported
+    - Primary and standby configuration
+    - SQL dump import/export
+    - CSV import
+
+- Hands On
+   - Select "SQL"
+   - Create Instances if first time
+   - select DB (Mysql or postgres)
+   - Enter Instance ID , Save the root password , region , zone
+   - Click Create
+   - Create new VM to connect to this SQL .
+   - Create service account to authorise this vm to connect to SQL
+       - IAM -> Service Accounts -> Create Service Accounts
+       - Enter name , id , desc -> create
+       - Assign role in the next page -> Continue
+       - Create Key -> JSON -> create
+   - SSH to the VM
+   - Upload the JSON key & sample file to load to db
+   - Install mysql client software [sudo apt-get update] [ sudo apt-get install mysql-client]
+   - wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -0 cloud_sql_proxy [download the cloudsql binaries]
+   - chmod +x ./cloud_sql_proxy
+   - ./cloud_sql_proxy -instances="Instance name"=tcp:3306 -credentials_file=./JSONkey &  [it will connect to cloud sql]
+   - mysql -u root -p -host 127.0.0.1 & Enter the root password saved when creating the Cloud sql
+   - CREATE DATABASE FORUM
+   - mysql -u root -p -host 127.0.0.1 forum < forum.sql
+   - USE forum
+   - SHOW TABLES
+   - DELETE CLOUD SQL INSTANCE, VM  & SERVICE ACCOUNT
+
+
+Cloud Firestore:
+================
+
+  - Fully Managed NoSQL document db
+  - Serverless , autoscaling
+  - Horizontally scalable, strong consistency , support ACID
+  - Load data to Firestore
+     - create new document [specify identifier]
+     - update existing document
+  - retrieve specific document by ID
+  - get all document in collection
+  - query for document with WHERE clause
+  - Indexes
+     - automatically creates single field Indexes
+     - also suggest compound Indexes
+
+Cloud Spanner:
+===============
+  - Managed SQL compliant DB
+  - Horizontally scalable
+  - highly available
+  - Its CA in CAP theorem
+  - $1 per hour for one node
+  - regional replication
+     - 3 read-write replicas
+     - every write requires write-quorum
+  - multi-regional configuration
+     - 4 replicas in 4 zones and two different regions [NAM3 configuration]
+     - many different configuration is available
+     - One region will be LEADER region
+     - reduce latency with distributed data
+     - External consistency
+  - Hands ON
+     - Spanner -> Create Instance
+     - Enter name , ID, -> CREATE
+     - Click CREATE DATABASE -> enter db name -> Continue -> provide schema (enter ddl) -> CREATE
+     - Open cloud shell -> github clone https://github.com/GoogleCloudPlatform/python-docs-sample
+     - cd python-docs-sample/spanner/cloud-Client
+     - virtualenv env
+     - source env/bin/activate
+     - pip install -r requirements.txt
+     - python snippets.py spannerlab --database-id demodb insert_with_dml
+
+Cloud MemoryStore:
+====================
+
+ - fully Managed redis service in gcp
+ - In memory key-value db
+ - scale with minimal impact
+ - automatic replication and failover
+ - Hands On
+    - MemoryStore -> Create Instance
+    - enter name, id -> CREATE
+    - create VM to host the application
+    - create firewall rules
+    - redis-cli -h 10.10.0.98
+    - INFO
+    - we can take take backup to gcs buckets
+    - import will overwrite all existing data in db
+
+Pub/Sub:
+==========
+
+  - global messaging & Event ingestion
+  - fully managed and Serverless
+  - multiple Publisher/subscriber patterns available
+  - at-least once delivery
+  - no order guarantee
+  - real time or batch
+  - publishing message
+     - create message contain data
+     - json payload (base64 encoded)
+     - size of payload should be 10 mb or less
+     - send request to pub/sub API
+  - receiving message
+     - create subscription to the topic
+     - Pull is default delivery method
+     - message must be acknowledged
+     - Push method will send message to an endpoint(must be https with valid ssl cert)
+  - client libraries available in all popular languages.
+  - local pub/sub emulator is available for development
+  - each subscriber will receive each message atleast once
+  - Hands ON
+     -  Pub/Sub -> Create Topic -> topic id -> create topic
+     - select the topic and click "create subscription"
+     - enter subscription id -> create
+     - click publish message -> enter message body  -> Publish
+     - CLI(cloud shell)
+        - gcloud command is used to interact with pub/sub
+        - gcloud pubsub topics list
+        - gcloud pubsub topics create Laptopic2
+
+  - undelivered message will be deleted after retention time. max retention period is 7 days
+  - message publised to topic before subscription is created, then those message will not be delivered to those subscriber
+  - subscription will expire after 31 days of inactivity
+
+
+DataFlow:
+==========
+
+  -
